@@ -5,3 +5,9 @@ sshd_config_entries:
 
 sshd_sysrcs:
   - { name: sshd_enable, value: "YES" }
+
+sshguard_sysrcs:
+  - { name: sshguard_enable, value: "YES" }
+  # - { name: sshguard_safety_thresh, value: "30" }
+  # - { name: sshguard_pardon_min_interval, value: "600" }
+  # - { name: sshguard_prescribe_interval, value: "7200" }

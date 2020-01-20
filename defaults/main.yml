@@ -5,3 +5,4 @@ sshd_service: sshd
 
 sshguard_packages:
   - sshguard
+sshguard_service: sshguard
