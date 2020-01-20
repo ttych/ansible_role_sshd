@@ -7,8 +7,14 @@
   register: t_sshguard_install
 
 - name: configure sshguard
-  debug:
-    msg: "FIXME"
+  lineinfile:
+    path: "{{ sshguard_config_file }}"
+    regexp: "{{ sshguard_config_entry.regexp }}"
+    line: "{{ sshguard_config_entry.line }}"
+  loop: "{{ sshguard_config_entries }}"
+  loop_control:
+    loop_var: sshguard_config_entry
+  register: t_sshguard_config
 
 - name: activate service
   block:
@@ -30,3 +36,7 @@
           when: t_sshguard_config.changed and not t_sshguard_service.changed
 
       when: ansible_distribution == 'FreeBSD'
+
+- name: set has_sshguard
+  set_fact:
+    has_sshguard: true

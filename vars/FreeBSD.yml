@@ -8,6 +8,10 @@ sshd_sysrcs:
 
 sshguard_sysrcs:
   - { name: sshguard_enable, value: "YES" }
-  # - { name: sshguard_safety_thresh, value: "30" }
-  # - { name: sshguard_pardon_min_interval, value: "600" }
-  # - { name: sshguard_prescribe_interval, value: "7200" }
+
+sshguard_config_file: /usr/local/etc/sshguard.conf
+
+sshguard_config_entries:
+  - { regexp: '^BLOCK_TIME=', line: 'BLOCK_TIME=600' }
+  - { regexp: '^DETECTION_TIME=', line: 'DETECTION_TIME=7200' }
+  - { regexp: '^BACKEND=', line: 'BACKEND="/usr/local/libexec/sshg-fw-pf"' }

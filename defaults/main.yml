@@ -6,3 +6,5 @@ sshd_service: sshd
 sshguard_packages:
   - sshguard
 sshguard_service: sshguard
+sshguard_config_file: /etc/sshguard.conf
+sshguard_config_entries: []
