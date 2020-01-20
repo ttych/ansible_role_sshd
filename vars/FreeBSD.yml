@@ -1,0 +1,7 @@
+---
+sshd_config_entries:
+  - { regexp: '^ChallengeResponseAuthentication ', line: 'ChallengeResponseAuthentication no'}
+  - { regexp: '^PasswordAuthentication ', line: 'PasswordAuthentication no' }
+
+sshd_sysrcs:
+  - { name: sshd_enable, value: "YES" }

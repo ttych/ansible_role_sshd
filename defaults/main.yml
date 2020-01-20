@@ -1,2 +1,7 @@
 ---
-# defaults file for ansible_role_sshd
+sshd_config_file: /etc/ssh/sshd_config
+sshd_config_entries: []
+sshd_service: sshd
+
+sshguard_packages:
+  - sshguard

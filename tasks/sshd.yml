@@ -1,0 +1,30 @@
+---
+- name: set sshd config
+  block:
+    - lineinfile:
+        path: "{{ sshd_config_file }}"
+        regexp: "{{ sshd_config_entry.regexp }}"
+        line: "{{ sshd_config_entry.line }}"
+      loop: "{{ sshd_config_entries }}"
+      loop_control:
+        loop_var: sshd_config_entry
+      register: t_sshd_config_1
+
+- name: set service on FreeBSD
+  block:
+    - include: sysrc.yml entry="{{ sshd_sysrc }}"
+      loop: "{{ sshd_sysrcs }}"
+      loop_control:
+        loop_var: sshd_sysrc
+
+    - service:
+        name: "{{ sshd_service }}"
+        state: started
+      register: t_sshd_service
+
+    - service:
+        name: "{{ sshd_service }}"
+        state: restarted
+      when: t_sshd_config_1.changed and not t_sshd_service.changed
+
+  when: ansible_distribution == 'FreeBSD'

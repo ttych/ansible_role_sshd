@@ -1,2 +1,6 @@
 ---
-# tasks file for ansible_role_sshd
+- include_tasks: context.yml
+
+- include_tasks: sshd.yml
+
+- include_tasks: sshguard.yml
