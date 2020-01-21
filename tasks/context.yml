@@ -11,8 +11,3 @@
       paths:
         - 'vars'
   loop: "{{ q('first_found', var_files, errors='ignore') }}"
-
-- name: include daemontools specificc
-  include_vars:
-    file: daemontools.yml
-  when: has_daemontools

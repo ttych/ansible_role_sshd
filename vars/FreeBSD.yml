@@ -1,9 +1,6 @@
 ---
+root_group: wheel
+
 sshd_config_entries:
   - { regexp: '^ChallengeResponseAuthentication ', line: 'ChallengeResponseAuthentication no'}
   - { regexp: '^PasswordAuthentication ', line: 'PasswordAuthentication no' }
-
-sshguard_dir: /usr/local/etc
-sshguard_conf_dir: /usr/local/etc
-
-root_group: wheel
