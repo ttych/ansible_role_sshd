@@ -1,10 +1,10 @@
 ---
-- name: "get sysrc {{ entry.name }} status"
-  shell: "sysrc -n {{ entry.name }}"
+- name: "get sysrc {{ key }} status"
+  shell: "sysrc -n {{ key }}"
   changed_when: no
-  register: sysrc_entry_status
+  register: sysrc_key_status
   ignore_errors: yes
 
-- name: "update sysrc {{ entry.name }}"
-  shell: "sysrc {{ entry.name }}={{ entry.value }}"
-  when: sysrc_entry_status.rc != 0 or sysrc_entry_status.stdout != entry.value
+- name: "update sysrc {{ key }}"
+  shell: "sysrc {{ key }}={{ value }}"
+  when: sysrc_key_status.rc != 0 or sysrc_key_status.stdout != value

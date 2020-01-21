@@ -3,15 +3,7 @@ sshd_config_entries:
   - { regexp: '^ChallengeResponseAuthentication ', line: 'ChallengeResponseAuthentication no'}
   - { regexp: '^PasswordAuthentication ', line: 'PasswordAuthentication no' }
 
-sshd_sysrcs:
-  - { name: sshd_enable, value: "YES" }
+sshguard_dir: /usr/local/etc
+sshguard_conf_dir: /usr/local/etc
 
-sshguard_sysrcs:
-  - { name: sshguard_enable, value: "YES" }
-
-sshguard_config_file: /usr/local/etc/sshguard.conf
-
-sshguard_config_entries:
-  - { regexp: '^BLOCK_TIME=', line: 'BLOCK_TIME=600' }
-  - { regexp: '^DETECTION_TIME=', line: 'DETECTION_TIME=7200' }
-  - { regexp: '^BACKEND=', line: 'BACKEND="/usr/local/libexec/sshg-fw-pf"' }
+root_group: wheel

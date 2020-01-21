@@ -12,10 +12,7 @@
 
 - name: set service on FreeBSD
   block:
-    - include: sysrc.yml entry="{{ sshd_sysrc }}"
-      loop: "{{ sshd_sysrcs }}"
-      loop_control:
-        loop_var: sshd_sysrc
+    - include: sysrc.yml key="{{ sshd_service }}_enable" value="YES"
 
     - service:
         name: "{{ sshd_service }}"
