@@ -1,6 +1,2 @@
 ---
 root_group: wheel
-
-sshd_config_entries:
-  - { regexp: '^ChallengeResponseAuthentication ', line: 'ChallengeResponseAuthentication no'}
-  - { regexp: '^PasswordAuthentication ', line: 'PasswordAuthentication no' }

@@ -1,6 +1,14 @@
 ---
 root_group: root
 
-sshd_config_file: /etc/ssh/sshd_config
-sshd_config_entries: []
 sshd_service: sshd
+sshd_conf_file: /etc/ssh/sshd_config
+sshd_conf_entries_base:
+  - { regexp: '^PermitRootLogin ', line: 'PermitRootLogin no' }
+  - { regexp: '^PermitEmptyPasswords ', line: 'PermitEmptyPasswords no' }
+sshd_conf_entries_secure:
+  - { regexp: '^ChallengeResponseAuthentication ', line: 'ChallengeResponseAuthentication no'}
+  - { regexp: '^PasswordAuthentication ', line: 'PasswordAuthentication no' }
+  # - { regexp: '^UsePAM ', line: 'UsePAM no' }
+
+want_max_security: false

@@ -1,27 +1,45 @@
 ---
-- name: set sshd config
-  block:
-    - lineinfile:
-        path: "{{ sshd_config_file }}"
-        regexp: "{{ sshd_config_entry.regexp }}"
-        line: "{{ sshd_config_entry.line }}"
-      loop: "{{ sshd_config_entries }}"
-      loop_control:
-        loop_var: sshd_config_entry
-      register: t_sshd_config_1
+- name: set sshd base config
+  lineinfile:
+    path: "{{ sshd_conf_file }}"
+    regexp: "{{ sshd_conf_entry.regexp }}"
+    line: "{{ sshd_conf_entry.line }}"
+  loop: "{{ sshd_conf_entries_base }}"
+  loop_control:
+    loop_var: sshd_conf_entry
+  register: t_sshd_conf_base
 
-- name: set service on FreeBSD
-  block:
-    - include: sysrc.yml key="{{ sshd_service }}_enable" value="YES"
+- name: set sshd secure conf
+  lineinfile:
+    path: "{{ sshd_conf_file }}"
+    regexp: "{{ sshd_conf_entry.regexp }}"
+    line: "{{ sshd_conf_entry.line }}"
+  loop: "{{ sshd_conf_entries_secure }}"
+  loop_control:
+    loop_var: sshd_conf_entry
+  register: t_sshd_conf_secure
+  when: want_max_security
 
-    - service:
-        name: "{{ sshd_service }}"
-        state: started
-      register: t_sshd_service
 
-    - service:
-        name: "{{ sshd_service }}"
-        state: restarted
-      when: t_sshd_config_1.changed and not t_sshd_service.changed
+- name: enable service on FreeBSD
+  include: sysrc.yml key="{{ sshd_service }}_enable" value="YES"
+  when: ansible_system == 'FreeBSD'
 
-  when: ansible_distribution == 'FreeBSD'
+
+- name: enable service on Linux
+  service:
+    name: "{{ sshd_service }}"
+    enabled: yes
+  when: ansible_system == 'Linux'
+
+- name: start service
+  service:
+    name: "{{ sshd_service }}"
+    state: started
+  register: t_sshd_service
+
+- name: restart service if updated
+  service:
+    name: "{{ sshd_service }}"
+    state: restarted
+  when: (t_sshd_conf_base.changed or t_sshd_conf_secure.changed) and not t_sshd_service.changed
