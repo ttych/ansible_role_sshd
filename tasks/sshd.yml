@@ -1,45 +1,96 @@
 ---
-- name: set sshd base config
-  lineinfile:
-    path: "{{ sshd_conf_file }}"
-    regexp: "{{ sshd_conf_entry.regexp }}"
-    line: "{{ sshd_conf_entry.line }}"
-  loop: "{{ sshd_conf_entries_base }}"
+
+- name: install sshd package
+  ansible.builtin.package:
+    name: "{{ sshd_package }}"
+    state: present
+  register: t_sshd_package
+
+
+
+- name: sshd connection groups
+  ansible.builtin.group:
+    name: "{{ sshd_connection_group.name }}"
+    state: "{{ sshd_connection_group.state | default('present') }}"
+    gid: "{{ sshd_connection_group.gid | default(omit) }}"
+    system: "{{ sshd_connection_group.system | default('no') }}"
+  loop: "{{ sshd_connection_groups }}"
   loop_control:
-    loop_var: sshd_conf_entry
-  register: t_sshd_conf_base
+    loop_var: sshd_connection_group
 
-- name: set sshd secure conf
-  lineinfile:
-    path: "{{ sshd_conf_file }}"
-    regexp: "{{ sshd_conf_entry.regexp }}"
-    line: "{{ sshd_conf_entry.line }}"
-  loop: "{{ sshd_conf_entries_secure }}"
+
+
+- name: ensure permission
+  ansible.builtin.file:
+    path: "{{ item.path | d(omit) }}"
+    src: "{{ item.src | d(omit) }}"
+    dest: "{{ item.dest | d(omit) }}"
+    owner: "{{ item.owner | d(omit) }}"
+    group: "{{ item.group | d(omit) }}"
+    mode: "{{ item.mode | d(omit) }}"
+    state: "{{ item.state|d('directory') }}"
+  loop: "{{ sshd_directories }}"
+
+- name: check Include sshd_config.d
+  ansible.builtin.shell:
+    cmd: "grep --extended-regexp --max-count 1 --invert-match '$^|^[[:space:]]*#' /etc/ssh/sshd_config | grep --extended-regexp '^Include[[:space:]]+{{ sshd_config_d }}/\\*\\.conf$'"
+  changed_when: no
+  failed_when: no
+  ignore_errors: yes
+  register: t_sshd_check_include
+
+- name: Fix Include sshd_config.d
+  when: t_sshd_check_include.rc != 0
+  block:
+
+    - name: remove existing Include
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_file }}"
+        regexp: '^Include /etc/ssh/sshd_config.d/\*\.conf$'
+        state: absent
+
+    - name: insert Include at beginning
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_file }}"
+        line: 'Include /etc/ssh/sshd_config.d/*.conf'
+        insertbefore: BOF
+        state: present
+      register: t_sshd_include_sshd_config_d
+
+- name: sshd_config_d files
+  include_tasks: sshd_config_d_file.yml
+  vars:
+    sshd_config_d_file_name: "{{ sshd_config_d_files_item.name }}"
+    sshd_condig_d_file_settings: "{{ sshd_config_d_files_item.settings }}"
+  loop: "{{ sshd_config_d_files }}"
   loop_control:
-    loop_var: sshd_conf_entry
-  register: t_sshd_conf_secure
-  when: want_max_security
+    loop_var: sshd_config_d_files_item
 
 
-- name: enable service on FreeBSD
-  include: sysrc.yml key="{{ sshd_service }}_enable" value="YES"
-  when: ansible_system == 'FreeBSD'
+
+- name: valide sshd configuration
+  ansible.builtin.command:
+    cmd: sshd -t
+  changed_when: no
+  register: t_sshd_config_check
 
 
-- name: enable service on Linux
-  service:
-    name: "{{ sshd_service }}"
+
+- name: enable sshd service
+  ansible.builtin.service:
+    name: "{{ sshd_service_name }}"
     enabled: yes
-  when: ansible_system == 'Linux'
 
-- name: start service
-  service:
-    name: "{{ sshd_service }}"
+- name: start sshd service
+  ansible.builtin.service:
+    name: "{{ sshd_service_name }}"
     state: started
-  register: t_sshd_service
+  register: t_sshd_service_start
 
-- name: restart service if updated
-  service:
-    name: "{{ sshd_service }}"
+- name: restart sshd service on change
+  ansible.builtin.service:
+    name: "{{ sshd_service_name }}"
     state: restarted
-  when: (t_sshd_conf_base.changed or t_sshd_conf_secure.changed) and not t_sshd_service.changed
+  when:
+    - not t_sshd_service_start.changed
+    - t_sshd_include_sshd_config_d.changed or (t_sshd_config_d_files_changed | d(false))

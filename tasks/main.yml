@@ -1,4 +1,15 @@
 ---
-- include_tasks: context.yml
 
-- include_tasks: sshd.yml
+- name: sshd
+  when: want_sshd
+  block:
+
+    - include_tasks: _context.yml
+
+    - include_tasks: sshd.yml
+
+
+
+- name: set has_sshd
+  set_fact:
+    has_sshd: "{{ want_sshd }}"

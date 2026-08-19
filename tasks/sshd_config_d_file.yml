@@ -1,0 +1,35 @@
+---
+
+- name: "update sshd_config_d / {{ sshd_config_d_file_name }}.conf"
+  ansible.builtin.lineinfile:
+    path: "{{ sshd_config_d }}/{{ sshd_config_d_file_name }}.conf"
+    regexp: "^{{ sshd_config_d_file_item.name }} "
+    line: "{{ sshd_config_d_file_item.name }} {{ sshd_config_d_file_item.value }}"
+    state: "{{ sshd_config_d_file_item.state | d('present') }}"
+    backrefs: "{{ sshd_config_d_file_item.backrefs | d(false) }}"
+    insertafter: "{{ sshd_config_d_file_item.insertafter | d('^#\\s*' + sshd_config_d_file_item.name + ' ') }}"
+    owner: "root"
+    group: "{{ root_group }}"
+    mode: "{{ sshd_config_d_file_item.mode | d('0600') }}"
+    create: yes
+  when:
+    - sshd_config_d_file_item.when | d(true)
+    - sshd_config_d_file_item.value not in [none, '']
+  loop: "{{ sshd_condig_d_file_settings }}"
+  loop_control:
+    loop_var: sshd_config_d_file_item
+  register: sshd_config_d_file_local
+
+# - name: "ensure permission sshd_config_d / {{ sshd_config_d_file_name }}.conf"
+#   ansible.builtin.file:
+#     path: "{{ sshd_config_d }}/{{ sshd_config_d_file_name }}.conf"
+#     owner: "root"
+#     group: "{{ root_group }}"
+#     mode: "0600"
+#     state: "file"
+
+
+
+- name: update t_sshd_config_d_files_changed
+  ansible.builtin.set_fact:
+    t_sshd_config_d_files_changed: "{{ (t_sshd_config_d_files_changed | d(false)) or sshd_config_d_file_local.changed }}"

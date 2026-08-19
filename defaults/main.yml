@@ -1,14 +1,93 @@
 ---
+
+want_sshd: yes
+
+
+sshd_package:
+  - openssh-server
+
+sshd_service_name: sshd
+
+sshd_config_file: /etc/ssh/sshd_config
+sshd_config_d: /etc/ssh/sshd_config.d
+
+sshd_directories:
+  - path: "{{ sshd_config_file }}"
+    owner: "root"
+    group: "{{ root_group }}"
+    mode: "0644"
+    state: "file"
+  - path: "{{ sshd_config_d }}"
+    owner: "root"
+    group: "{{ root_group }}"
+    mode: "0755"
+
+sshd_connection_groups:
+  - name: sshusers
+    gid: 2099
+
+sshd_conf_deny_users:
+  - root
+sshd_conf_deny_groups: []
+sshd_conf_allow_users: []
+sshd_conf_allow_groups: "{{ sshd_connection_groups | map(attribute='name') | list }}"
+
+sshd_config_d_01_hardening:
+  name: "01-hardening"
+  settings:
+    - name: PermitRootLogin
+      value: "no"
+    - name: PermitEmptyPasswords
+      value: "no"
+    - name: PermitUserEnvironment
+      value: "no"
+    - name: PasswordAuthentication
+      value: "no"
+      when: "{{ want_max_security | d(false) }}"
+    - name: ChallengeResponseAuthentication
+      value: "no"
+      when: "{{ want_max_security | d(false) }}"
+    - name: UsePAM
+      value: "no"
+      when: "{{ want_max_security | d(false) }}"
+    - name: PubkeyAuthentication
+      value: "yes"
+    - name: MaxAuthTries
+      value: 3
+    - name: X11Forwarding
+      value: "no"
+    - name: AllowTcpForwarding
+      value: "no"
+    # - name: Ciphers
+    #   value: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com"
+    # - name: KexAlgorithms
+    #   value: "curve25519-sha256@libssh.org,sntrup761x25519-sha512@openssh.com"
+    # - name: MACs
+    #   value: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com"
+    # - name: HostKey
+    #   value: /etc/ssh/ssh_host_ed25519_key
+    - name: ClientAliveInterval
+      value: 300
+    - name: ClientAliveCountMax
+      value: 3
+    - name: LogLevel
+      value: VERBOSE
+      when: "{{ want_max_security | d(false) }}"
+
+sshd_config_d_10_access:
+  name: "10-access"
+  settings:
+    - name: DenyUsers
+      value: "{{ sshd_conf_deny_users | join(' ') }}"
+    - name: AllowUsers
+      value: "{{ sshd_conf_allow_users | join(' ') }}"
+    - name: AllowGroups
+      value: "{{ sshd_conf_allow_groups | join(' ') }}"
+
+sshd_config_d_files:
+  - "{{ sshd_config_d_01_hardening }}"
+  - "{{ sshd_config_d_10_access }}"
+
+
+
 root_group: root
-
-sshd_service: sshd
-sshd_conf_file: /etc/ssh/sshd_config
-sshd_conf_entries_base:
-  - { regexp: '^PermitRootLogin ', line: 'PermitRootLogin no' }
-  - { regexp: '^PermitEmptyPasswords ', line: 'PermitEmptyPasswords no' }
-sshd_conf_entries_secure:
-  - { regexp: '^ChallengeResponseAuthentication ', line: 'ChallengeResponseAuthentication no'}
-  - { regexp: '^PasswordAuthentication ', line: 'PasswordAuthentication no' }
-  # - { regexp: '^UsePAM ', line: 'UsePAM no' }
-
-want_max_security: false
