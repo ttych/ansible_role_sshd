@@ -26,6 +26,14 @@ sshd_connection_groups:
   - name: sshusers
     gid: 2099
 
+sshd_per_source_penalty_noauth: 5s
+sshd_per_source_penalty_grace_exceeded: 20s
+sshd_per_source_penalty_authfail: 10s
+sshd_per_source_penalty_refuseconnection: 60s
+sshd_per_source_penalty_min: 30s
+sshd_per_source_penalty_max: 1h
+sshd_per_source_penalty_exempt_list: []
+
 sshd_conf_deny_users:
   - root
 sshd_conf_deny_groups: []
@@ -73,6 +81,10 @@ sshd_config_d_01_hardening:
     - name: LogLevel
       value: VERBOSE
       when: "{{ want_max_security | d(false) }}"
+    - name: PerSourcePenalties
+      value: "noauth:{{ sshd_per_source_penalty_noauth }} grace-exceeded:{{ sshd_per_source_penalty_grace_exceeded }} authfail:{{ sshd_per_source_penalty_authfail }} refuseconnection:{{ sshd_per_source_penalty_refuseconnection }} min:{{ sshd_per_source_penalty_min }} max:{{ sshd_per_source_penalty_max }}"
+    - name: PerSourcePenaltyExemptList
+      value: "{{ sshd_per_source_penalty_exempt_list | join(', ') }}"
 
 sshd_config_d_10_access:
   name: "10-access"
