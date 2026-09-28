@@ -2,8 +2,6 @@
 
 want_sshd: yes
 
-want_sshguard: yes
-
 
 
 root_group: root

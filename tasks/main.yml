@@ -8,12 +8,7 @@
 
     - include_tasks: sshd.yml
 
-    - include_tasks: sshguard.yml
-      when: want_sshguard
-
-
 
 - name: set has_sshd
   set_fact:
     has_sshd: "{{ want_sshd }}"
-    has_sshguard: "{{ want_sshguard }}"
