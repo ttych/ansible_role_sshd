@@ -83,6 +83,11 @@ sshd_config_d_01_hardening:
       value: "noauth:{{ sshd_per_source_penalty_noauth }} grace-exceeded:{{ sshd_per_source_penalty_grace_exceeded }} authfail:{{ sshd_per_source_penalty_authfail }} refuseconnection:{{ sshd_per_source_penalty_refuseconnection }} min:{{ sshd_per_source_penalty_min }} max:{{ sshd_per_source_penalty_max }}"
     - name: PerSourcePenaltyExemptList
       value: "{{ sshd_per_source_penalty_exempt_list | join(', ') }}"
+    - name: VersionAddendum
+      value: "none"
+    - name: DebianBanner
+      value: "no"
+      state: "{{ 'present' if ansible_facts.os_family == 'Debian' else 'absent' }}"
 
 sshd_config_d_10_access:
   name: "10-access"
