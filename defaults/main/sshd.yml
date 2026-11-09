@@ -22,6 +22,8 @@ sshd_directories:
 sshd_connection_groups:
   - name: sshusers
     gid: 2099
+  - name: sshapps
+    gid: 2098
 
 sshd_per_source_penalty_noauth: 5s
 sshd_per_source_penalty_grace_exceeded: 20s
